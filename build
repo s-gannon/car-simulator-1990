@@ -1,0 +1,4 @@
+#!/bin/sh
+
+gcc -Wall -Wextra -pedantic -g -o main main.c `sdl2-config --cflags --libs` 
+
