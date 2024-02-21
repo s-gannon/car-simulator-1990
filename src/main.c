@@ -3,12 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#ifdef DEBUG_STATEMENTS
+#include <unistd.h>
+#endif
 // SDL2 includes
 #include <SDL2/SDL.h>
 // Macros
 #define GB_HEIGHT 144
 #define GB_WIDTH  160
-#define INT_SCALE 3
+#define SCREEN_INT_SCALE 3
+#define FRAMES_PER_SECOND 30.00
 // Functions
 void init_sdl(int flags){
 	if(SDL_Init(flags)){ // if SDL_Init returns non-zero, run 
@@ -16,14 +20,7 @@ void init_sdl(int flags){
         exit(EXIT_FAILURE);
     }
 }
-/*
-void init_sdl_images(int flags){
-    if(!IMG_Init(flags)){ // if init returns 0, flip and error out
-        printf("[ERROR] IMG_Init: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
-    }
-}
-*/
+
 void cleanup_sdl(SDL_Renderer * render, SDL_Window * win){
     SDL_DestroyRenderer(render);
     SDL_DestroyWindow(win);
@@ -70,7 +67,7 @@ int main(void){
         "Car Simulator 1990",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        GB_WIDTH * INT_SCALE, GB_HEIGHT * INT_SCALE,
+        GB_WIDTH * SCREEN_INT_SCALE, GB_HEIGHT * SCREEN_INT_SCALE,
         SDL_WINDOW_SHOWN
     );
 
@@ -83,28 +80,36 @@ int main(void){
     );
 
     check_sdl_renderer(renderer, window);
-
+    
     SDL_Event event;
     int quit = 0;
-    while(!quit){
+    int frames = 0;
+
+    int game_start = clock();
+    do{
+        clock_t frame_start = clock();
+
+        do{ // This *should* be a single frame
+            printf("Frame %d\n", ++frames);
+            #ifdef DEBUG_STATEMENTS
+            printf("Total time elapsed: %.2f\n", (clock() - game_start) / 1000.00);
+            #endif
+        } while((clock() - frame_start) / 1000 < (1000 / FRAMES_PER_SECOND));
+        #ifdef DEBUG_STATEMENTS
+        if((clock() - game_start) >= 30000)
+            quit = 1;
+        #endif
         while(SDL_PollEvent(&event)){
             switch(event.type){
                 case SDL_QUIT:
                     quit = 1;
                     break;
-                case SDL_KEYDOWN:
-                    if(event.key.keysym.sym == SDLK_SPACE)
-                        printf("Space bar was pressed\n");
-                    break;
-                case SDL_KEYUP:
-                    if(event.key.keysym.sym == SDLK_SPACE)
-                        printf("Space bar was released\n");
-                    break;
                 default:
                     break;
             }
         }
-    }
+        // TODO: game loop
+    } while(!quit);
 
     cleanup_sdl(renderer, window);
 

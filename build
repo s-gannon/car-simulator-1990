@@ -1,5 +1,5 @@
 #!/bin/sh
 
 cd src
-clang -Wall -Wextra -pedantic -g -o main main.c `sdl2-config --cflags --libs` 
+clang -Wall -Wextra -pedantic -D DEBUG_STATEMENTS -g -o main main.c `sdl2-config --cflags --libs` 
 mv main ../
